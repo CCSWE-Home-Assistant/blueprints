@@ -1,0 +1,64 @@
+blueprint:
+  name: Synchronize Light and Switch
+  description: Synchronize light and switch state.
+  author: Cory Charlton
+  source_url: https://github.com/CoryCharlton/home-assistant-blueprints/automation/synchronize_light_switch.yaml
+  domain: automation
+  input:
+    light_entity:
+      name: Light
+      selector:
+        entity:
+          filter:
+            - domain: light
+    switch_entity:
+      name: Switch
+      selector:
+        entity:
+          filter:
+            - domain: switch
+
+mode: restart
+max_exceeded: silent
+
+variables:
+  light_entity: !input light_entity
+  switch_entity: !input switch_entity
+
+triggers:
+  - trigger: state
+    entity_id: !input light_entity
+
+  - trigger: state
+    entity_id: !input switch_entity
+
+action:
+  - choose:
+      - conditions:
+          condition: template
+          value_template: "{{ trigger.from_state.entity_id == light_entity and is_state(trigger.to_state.entity_id, 'on') }}"
+        sequence:
+          - action: switch.turn_on
+            data:
+              entity_id: "{{ switch_entity }}"
+      - conditions:
+          condition: template
+          value_template: "{{ trigger.from_state.entity_id == light_entity and is_state(trigger.to_state.entity_id, 'off') }}"
+        sequence:
+          - action: switch.turn_off
+            data:
+              entity_id: "{{ switch_entity }}"
+      - conditions:
+          condition: template
+          value_template: "{{ trigger.from_state.entity_id == switch_entity and is_state(trigger.to_state.entity_id, 'on') }}"
+        sequence:
+          - action: light.turn_on
+            data:
+              entity_id: "{{ light_entity }}"
+      - conditions:
+          condition: template
+          value_template: "{{ trigger.from_state.entity_id == switch_entity and is_state(trigger.to_state.entity_id, 'off') }}"
+        sequence:
+          - action: light.turn_off
+            data:
+              entity_id: "{{ light_entity }}"
