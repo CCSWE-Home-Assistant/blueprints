@@ -28,9 +28,15 @@ variables:
 triggers:
   - trigger: state
     entity_id: !input light_entity
+    not_from:
+      - "unavailable"
+      - "unknown"
 
   - trigger: state
     entity_id: !input switch_entity
+    not_from:
+      - "unavailable"
+      - "unknown"
 
 action:
   - choose:

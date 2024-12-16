@@ -28,14 +28,26 @@ variables:
 triggers:
   - trigger: state
     entity_id: !input light_entity_1
+    not_from:
+      - "unavailable"
+      - "unknown"
   - trigger: state
     entity_id: !input light_entity_1
+    not_from:
+      - "unavailable"
+      - "unknown"
     attribute: brightness
 
   - trigger: state
     entity_id: !input light_entity_2
+    not_from:
+      - "unavailable"
+      - "unknown"
   - trigger: state
     entity_id: !input light_entity_2
+    not_from:
+      - "unavailable"
+      - "unknown"
     attribute: brightness
 
 action:
