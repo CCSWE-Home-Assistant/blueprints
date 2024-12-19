@@ -2,7 +2,7 @@ blueprint:
   name: Synchronize Light and Light
   description: Synchronize light with light.
   author: Cory Charlton
-  source_url: https://github.com/CoryCharlton/home-assistant-blueprints/automation/synchronize_light_light.yaml
+  source_url: https://github.com/CCSWE-Home-Assistant/blueprints/automation/synchronize_light_light.yaml
   domain: automation
   input:
     light_entity_1:
