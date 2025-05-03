@@ -1,0 +1,28 @@
+blueprint:
+  name: Turn Off Area
+  description: Turn off all visible fans, lights, and switches in a given area.
+  author: Cory Charlton
+  source_url: https://github.com/CCSWE-Home-Assistant/blueprints/script/turn_off_area.yaml
+  domain: script
+  input:
+    area_id:
+      name: Area
+      selector:
+        area:
+
+mode: restart
+max_exceeded: silent
+
+sequence:
+  - alias: "Turn Off Fans"
+    action: fan.turn_off
+    target:
+      area_id: !input area_id
+  - alias: "Turn Off Light"
+    action: light.turn_off
+    target:
+      area_id: !input area_id
+  - alias: "Turn Off Switches"
+    action: switch.turn_off
+    target:
+      area_id: !input area_id
