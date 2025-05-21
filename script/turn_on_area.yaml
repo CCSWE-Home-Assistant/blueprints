@@ -1,8 +1,8 @@
 blueprint:
-  name: Turn Off Area
-  description: Turn off all visible fans, lights, and switches in a given area.
+  name: Turn On Area
+  description: Turn on all visible fans, lights, and switches in a given area.
   author: Cory Charlton
-  source_url: https://github.com/CCSWE-Home-Assistant/blueprints/script/turn_off_area.yaml
+  source_url: https://github.com/CCSWE-Home-Assistant/blueprints/script/turn_on_area.yaml
   domain: script
   input:
     area_id:
@@ -38,23 +38,23 @@ sequence:
       - condition: template
         value_template: "{{ include_fans }}"
     then:
-      - alias: "Turn Off Fans"
-        action: fan.turn_off
+      - alias: "Turn On Fans"
+        action: fan.turn_on
         target:
           area_id: !input area_id
   - if:
       - condition: template
         value_template: "{{ include_lights }}"
     then:
-      - alias: "Turn Off Lights"
-        action: light.turn_off
+      - alias: "Turn On Lights"
+        action: light.turn_on
         target:
           area_id: !input area_id
   - if:
       - condition: template
         value_template: "{{ include_lights }}"
     then:
-      - alias: "Turn Off Switches"
-        action: switch.turn_off
+      - alias: "Turn On Switches"
+        action: switch.turn_on
         target:
           area_id: !input area_id
