@@ -1,0 +1,79 @@
+blueprint:
+  name: Lock Down Television
+  description: Automatically turn off lights after a delay.
+  author: Cory Charlton
+  source_url: https://github.com/CCSWE-Home-Assistant/blueprints/automation/lock_down_television.yaml
+  domain: automation
+  input:
+    television_remote_entity:
+      name: Television remote entity
+      selector:
+        entity:
+          filter:
+            - domain: remote
+    power_off_delay_seconds:
+      name: Power off delay
+      description: Seconds to wait before turning off the television.
+      selector:
+        number:
+          min: 0
+          max: 360
+          mode: box
+          unit_of_measurement: seconds
+      default: 5
+    text_to_speech_provider:
+      name: Text-to-speech (TTS) provider
+      default: ""
+      selector:
+        entity:
+          filter:
+            - domain: tts
+    media_player_entity:
+      name: Media player entity
+      description: Media players to play the message.
+      default: ""
+      selector:
+        entity:
+          filter:
+            - domain: media_player
+    announcement_text:
+      name: Announcement text
+      description: The announcement to speak before the television is powered off.
+      default: The television is in lock down mode and will shutdown now.
+      selector:
+        text: null
+
+mode: single
+max_exceeded: silent
+
+variables:
+  announcement_text: !input announcement_text
+  media_player_entity: !input media_player_entity
+  text_to_speech_provider: !input text_to_speech_provider
+
+triggers:
+  - trigger: state
+    entity_id: !input television_remote_entity
+    to: "on"
+
+action:
+  - variables:
+      announcement_enabled: >-
+        {{ true if announcement_text and media_player_entity and text_to_speech_provider else false }}
+
+  - if:
+      - condition: template
+        value_template: "{{ announcement_enabled }}"
+    then:
+      - action: tts.speak
+        data:
+          cache: true
+          media_player_entity_id: !input media_player_entity
+          message: !input announcement_text
+        target:
+          entity_id: "{{ text_to_speech_provider }}"
+  - delay:
+      seconds: !input power_off_delay_seconds
+  - action: remote.turn_off
+    target:
+      entity_id: !input television_remote_entity
