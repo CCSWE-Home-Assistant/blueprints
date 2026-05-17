@@ -47,14 +47,26 @@ max_exceeded: silent
 variables:
   media_player_entities: !input media_player_entities
   duck_volume_level: !input duck_volume_level
-  original_volumes: >-
+  volumes_to_set: >-
     {%- set ns = namespace(pairs=[]) -%}
     {%- for e in media_player_entities -%}
-      {%- if states(e) not in ['unavailable', 'unknown'] and state_attr(e, 'volume_level') is not none -%}
+      {%- if states(e) not in ['unavailable', 'unknown']
+             and state_attr(e, 'volume_level') is not none -%}
         {%- set ns.pairs = ns.pairs + [{'entity_id': e, 'volume_level': state_attr(e, 'volume_level')}] -%}
       {%- endif -%}
     {%- endfor -%}
     {{ ns.pairs }}
+  players_to_mute: >-
+    {%- set ns = namespace(items=[]) -%}
+    {%- for e in media_player_entities -%}
+      {%- if states(e) not in ['unavailable', 'unknown']
+             and state_attr(e, 'volume_level') is none
+             and state_attr(e, 'is_volume_muted') is not none
+             and state_attr(e, 'is_volume_muted') is not true -%}
+        {%- set ns.items = ns.items + [e] -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {{ ns.items }}
 
 triggers:
   - trigger: state
@@ -67,13 +79,22 @@ triggers:
 action:
   - if:
       - condition: template
-        value_template: "{{ original_volumes | length > 0 }}"
+        value_template: "{{ volumes_to_set | length > 0 }}"
     then:
       - action: media_player.volume_set
         target:
-          entity_id: "{{ original_volumes | map(attribute='entity_id') | list }}"
+          entity_id: "{{ volumes_to_set | map(attribute='entity_id') | list }}"
         data:
           volume_level: "{{ duck_volume_level }}"
+  - if:
+      - condition: template
+        value_template: "{{ players_to_mute | length > 0 }}"
+    then:
+      - action: media_player.volume_mute
+        target:
+          entity_id: "{{ players_to_mute }}"
+        data:
+          is_volume_muted: true
   - wait_for_trigger:
       - trigger: state
         entity_id: !input voice_satellite_entity
@@ -82,10 +103,19 @@ action:
       seconds: !input restore_timeout_seconds
     continue_on_timeout: true
   - repeat:
-      for_each: "{{ original_volumes }}"
+      for_each: "{{ volumes_to_set }}"
       sequence:
         - action: media_player.volume_set
           target:
             entity_id: "{{ repeat.item.entity_id }}"
           data:
             volume_level: "{{ repeat.item.volume_level }}"
+  - if:
+      - condition: template
+        value_template: "{{ players_to_mute | length > 0 }}"
+    then:
+      - action: media_player.volume_mute
+        target:
+          entity_id: "{{ players_to_mute }}"
+        data:
+          is_volume_muted: false

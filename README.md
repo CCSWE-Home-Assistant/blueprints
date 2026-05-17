@@ -16,7 +16,7 @@ Turns off the selected lights after a configurable delay (default 15 minutes). T
 
 ### Duck Media Volume During Voice
 
-Lowers the volume of selected media players when a Home Assistant Voice satellite starts listening, and restores the original volumes when it returns to idle. Includes a safety timeout so a satellite that gets stuck in the `responding` state can't strand the volume.
+Lowers the volume of selected media players when a Home Assistant Voice satellite starts listening, and restores them when it returns to idle. Media players that don't support setting a specific volume (e.g. Android TV via the `media_player.*` entity) are muted instead, and unmuted on restore. Players that were already muted are left alone. Includes a safety timeout so a satellite that gets stuck in the `responding` state can't strand the volume.
 
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FCCSWE-Home-Assistant%2Fblueprints%2Fautomation%2Fduck_volume_for_voice.yaml)
 
