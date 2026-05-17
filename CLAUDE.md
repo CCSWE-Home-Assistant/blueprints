@@ -48,6 +48,45 @@ Home Assistant uses vanilla Jinja2 (plus its own filter/global additions like `e
 
   See `automation/duck_volume_for_voice.yaml` for a real example. Use `{%- -%}` whitespace stripping inside a folded `>-` scalar so the emitted value isn't surrounded by stray spaces.
 
+## Detecting media_player capabilities
+
+Attribute presence is **not** a reliable signal of which actions a `media_player.*` entity supports. The Android TV `media_player` entity, for example, exposes a `volume_level` attribute while *not* supporting `media_player.volume_set` — calling the action on it fails at runtime with `Entity ... does not support action media_player.volume_set`.
+
+The authoritative check is the `supported_features` bitmask, tested with the `bitwise_and` filter (HA-provided, not vanilla Jinja2):
+
+```jinja
+{% set sf = state_attr(e, 'supported_features') | int(0) %}
+{% if sf | bitwise_and(4) > 0 %}{# VOLUME_SET (bit 2) #}{% endif %}
+{% if sf | bitwise_and(8) > 0 %}{# VOLUME_MUTE (bit 3) #}{% endif %}
+```
+
+Relevant `MediaPlayerEntityFeature` bit values:
+
+- `1` PAUSE · `2` SEEK · `4` VOLUME_SET · `8` VOLUME_MUTE
+- `16` PREVIOUS_TRACK · `32` NEXT_TRACK · `128` TURN_ON · `256` TURN_OFF
+- `512` PLAY_MEDIA · `1024` VOLUME_STEP · `2048` SELECT_SOURCE · `4096` STOP · `8192` CLEAR_PLAYLIST · `16384` PLAY · `32768` SHUFFLE_SET · `65536` SELECT_SOUND_MODE · `131072` BROWSE_MEDIA · `262144` REPEAT_SET · `524288` GROUPING · `1048576` MEDIA_ANNOUNCE · `2097152` MEDIA_ENQUEUE · `4194304` SEARCH_MEDIA
+
+Other domains have their own `<Domain>EntityFeature` enums with separate bit values — always check the right enum.
+
+### Filtering the picker by supported_features
+
+Entity selectors accept the same capability check at picker time via `filter[].supported_features`, using the dotted enum-path format:
+
+```yaml
+selector:
+  entity:
+    filter:
+      - domain: media_player
+        supported_features:
+          - media_player.MediaPlayerEntityFeature.VOLUME_SET
+      - domain: media_player
+        supported_features:
+          - media_player.MediaPlayerEntityFeature.VOLUME_MUTE
+    multiple: true
+```
+
+Multiple filter dicts in the outer list are OR'd (entity matches if it satisfies *any* dict) — this is the documented way to express "supports A or B." Combining multiple features within one dict's `supported_features:` list isn't documented; prefer separate dicts for OR. Keep the runtime `bitwise_and` checks too as a defense against entities whose features change after selection.
+
 ## Verifying changes
 
 There is no local validator. Sanity-check edits by:
