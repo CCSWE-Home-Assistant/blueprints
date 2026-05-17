@@ -1,0 +1,91 @@
+blueprint:
+  name: Duck Media Volume During Voice
+  description: >-
+    Lower selected media player volumes when a Home Assistant Voice satellite
+    starts listening, then restore the original volumes when it returns to idle.
+  author: Cory Charlton
+  source_url: https://github.com/CCSWE-Home-Assistant/blueprints/automation/duck_volume_for_voice.yaml
+  domain: automation
+  input:
+    voice_satellite_entity:
+      name: Voice satellite
+      selector:
+        entity:
+          filter:
+            - domain: assist_satellite
+    media_player_entities:
+      name: Media players to duck
+      selector:
+        entity:
+          filter:
+            - domain: media_player
+          multiple: true
+    duck_volume_level:
+      name: Ducked volume level
+      description: Volume level (0.0–1.0) the selected media players are set to while the satellite is engaged.
+      default: 0.1
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.05
+          mode: slider
+    restore_timeout_seconds:
+      name: Restore safety timeout
+      description: Restore volumes after this many seconds even if the satellite never returns to idle (covers a known stuck-in-responding bug).
+      default: 60
+      selector:
+        number:
+          min: 5
+          max: 600
+          mode: box
+          unit_of_measurement: seconds
+
+mode: single
+max_exceeded: silent
+
+variables:
+  media_player_entities: !input media_player_entities
+  duck_volume_level: !input duck_volume_level
+  original_volumes: >-
+    {%- set ns = namespace(pairs=[]) -%}
+    {%- for e in media_player_entities -%}
+      {%- if states(e) not in ['unavailable', 'unknown'] and state_attr(e, 'volume_level') is not none -%}
+        {%- set ns.pairs = ns.pairs + [{'entity_id': e, 'volume_level': state_attr(e, 'volume_level')}] -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {{ ns.pairs }}
+
+triggers:
+  - trigger: state
+    entity_id: !input voice_satellite_entity
+    from: "idle"
+    not_to:
+      - "unavailable"
+      - "unknown"
+
+action:
+  - if:
+      - condition: template
+        value_template: "{{ original_volumes | length > 0 }}"
+    then:
+      - action: media_player.volume_set
+        target:
+          entity_id: "{{ original_volumes | map(attribute='entity_id') | list }}"
+        data:
+          volume_level: "{{ duck_volume_level }}"
+  - wait_for_trigger:
+      - trigger: state
+        entity_id: !input voice_satellite_entity
+        to: "idle"
+    timeout:
+      seconds: !input restore_timeout_seconds
+    continue_on_timeout: true
+  - repeat:
+      for_each: "{{ original_volumes }}"
+      sequence:
+        - action: media_player.volume_set
+          target:
+            entity_id: "{{ repeat.item.entity_id }}"
+          data:
+            volume_level: "{{ repeat.item.volume_level }}"

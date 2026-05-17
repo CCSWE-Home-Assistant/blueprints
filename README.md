@@ -14,6 +14,12 @@ Turns off the selected lights after a configurable delay (default 15 minutes). T
 
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FCCSWE-Home-Assistant%2Fblueprints%2Fautomation%2Fauto_turn_off_light.yaml)
 
+### Duck Media Volume During Voice
+
+Lowers the volume of selected media players when a Home Assistant Voice satellite starts listening, and restores the original volumes when it returns to idle. Includes a safety timeout so a satellite that gets stuck in the `responding` state can't strand the volume.
+
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FCCSWE-Home-Assistant%2Fblueprints%2Fautomation%2Fduck_volume_for_voice.yaml)
+
 ### Lock Down Television
 
 Watches a TV remote entity for turning on and shuts it back off after a configurable delay. Optionally plays a TTS announcement on a media player before powering off — useful as a "time's up" guard for a kid's TV.

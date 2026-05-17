@@ -29,6 +29,25 @@ When **renaming, moving, or adding** a blueprint, update `source_url` to match t
 - `selector.entity.filter[].domain` restricts the picker to one HA domain (`light`, `switch`, `remote`, `tts`, `media_player`, etc.). Use `multiple: true` when the action operates on a group.
 - `area_id` selectors target whole areas — used in the scripts to act on every fan/light/switch in a room without enumerating entities.
 
+## Jinja in HA templates
+
+Home Assistant uses vanilla Jinja2 (plus its own filter/global additions like `expand`, `states`, `state_attr`, `combine`). Two things this means in practice:
+
+- **No comprehensions.** Jinja2 does not support list/dict/set comprehensions. Syntax like `[x for x in y]` or `{k: v for k in y}` fails to parse — HA surfaces this as `TemplateSyntaxError: expected token ',', got 'for'`.
+- **Build collections with `namespace` + loop instead.** To produce a list or dict from an iterable inside `variables:` or any other template, accumulate into a `namespace` and emit it at the end:
+
+  ```jinja
+  {%- set ns = namespace(items=[]) -%}
+  {%- for e in some_list -%}
+    {%- if <predicate> -%}
+      {%- set ns.items = ns.items + [{'key': e, 'val': state_attr(e, 'attr')}] -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {{ ns.items }}
+  ```
+
+  See `automation/duck_volume_for_voice.yaml` for a real example. Use `{%- -%}` whitespace stripping inside a folded `>-` scalar so the emitted value isn't surrounded by stray spaces.
+
 ## Verifying changes
 
 There is no local validator. Sanity-check edits by:
