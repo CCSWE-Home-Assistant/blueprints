@@ -1,8 +1,9 @@
 blueprint:
   name: Duck Media Volume During Voice
   description: >-
-    Lower selected media player volumes when a Home Assistant Voice satellite
-    starts listening, then restore the original volumes when it returns to idle.
+    Quiet selected media players while a Home Assistant Voice satellite is
+    engaged — ducking the volume, pausing playback, or muting in that order
+    of preference — then restore them when it returns to idle.
   author: Cory Charlton
   source_url: https://github.com/CCSWE-Home-Assistant/blueprints/automation/duck_volume_for_voice.yaml
   domain: automation
@@ -73,7 +74,7 @@ variables:
     {%- set ns = namespace(items=[]) -%}
     {%- for e in media_player_entities -%}
       {%- set sf = state_attr(e, 'supported_features') | int(0) -%}
-      {%- if states(e) == 'playing'
+      {%- if states(e) not in ['off', 'standby', 'unavailable', 'unknown', 'paused']
              and sf | bitwise_and(4) == 0
              and sf | bitwise_and(1) > 0
              and sf | bitwise_and(16384) > 0 -%}
@@ -85,7 +86,7 @@ variables:
     {%- set ns = namespace(items=[]) -%}
     {%- for e in media_player_entities -%}
       {%- set sf = state_attr(e, 'supported_features') | int(0) -%}
-      {%- if states(e) == 'playing'
+      {%- if states(e) not in ['off', 'standby', 'unavailable', 'unknown', 'paused']
              and sf | bitwise_and(4) == 0
              and (sf | bitwise_and(1) == 0 or sf | bitwise_and(16384) == 0)
              and sf | bitwise_and(8) > 0

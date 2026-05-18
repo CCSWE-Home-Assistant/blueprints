@@ -68,6 +68,8 @@ Relevant `MediaPlayerEntityFeature` bit values:
 
 Other domains have their own `<Domain>EntityFeature` enums with separate bit values — always check the right enum.
 
+The `state` attribute is similarly unreliable on some integrations — the Android TV media_player (Cast and the Android TV Remote integration) often reports `idle` even during active playback. Don't gate actions on `state == 'playing'`; if you need a play-state filter, use a denylist that excludes only the clearly-off states (`off`, `standby`, `paused`, `unavailable`, `unknown`).
+
 ### Filtering the picker by supported_features
 
 Entity selectors accept the same capability check at picker time via `filter[].supported_features`, using the dotted enum-path format:
