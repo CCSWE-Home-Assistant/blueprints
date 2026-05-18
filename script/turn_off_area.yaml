@@ -52,7 +52,7 @@ sequence:
           area_id: !input area_id
   - if:
       - condition: template
-        value_template: "{{ include_lights }}"
+        value_template: "{{ include_switches }}"
     then:
       - alias: "Turn Off Switches"
         action: switch.turn_off
