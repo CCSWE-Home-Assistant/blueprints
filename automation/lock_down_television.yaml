@@ -1,6 +1,8 @@
 blueprint:
   name: Lock Down Television
-  description: Automatically turn off lights after a delay.
+  description: >-
+    Power off a television when its remote turns on, optionally announcing the
+    shutdown over a media player first.
   author: Cory Charlton
   source_url: https://github.com/CCSWE-Home-Assistant/blueprints/automation/lock_down_television.yaml
   domain: automation
@@ -14,13 +16,13 @@ blueprint:
     power_off_delay_seconds:
       name: Power off delay
       description: Seconds to wait before turning off the television.
+      default: 5
       selector:
         number:
           min: 0
           max: 360
           mode: box
           unit_of_measurement: seconds
-      default: 5
     text_to_speech_provider:
       name: Text-to-speech (TTS) provider
       default: ""
