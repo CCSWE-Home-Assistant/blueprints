@@ -58,12 +58,12 @@ action:
         sequence:
           - action: light.turn_on
             data:
-              brightness: "{{ state_attr(trigger.to_state.entity_id, 'brightness') }}"
-              entity_id: "{% if trigger.from_state.entity_id == light_entity_1 %} {{ light_entity_2 }} {% else %} {{ light_entity_1 }} {% endif %}"
+              brightness: "{{ state_attr(trigger.entity_id, 'brightness') }}"
+              entity_id: "{{ light_entity_2 if trigger.entity_id == light_entity_1 else light_entity_1 }}"
       - conditions:
           condition: template
           value_template: "{{ is_state(trigger.to_state.entity_id, 'off') }}"
         sequence:
           - action: light.turn_off
             data:
-              entity_id: "{% if trigger.from_state.entity_id == light_entity_1 %} {{ light_entity_2 }} {% else %} {{ light_entity_1 }} {% endif %}"
+              entity_id: "{{ light_entity_2 if trigger.entity_id == light_entity_1 else light_entity_1 }}"

@@ -42,28 +42,28 @@ action:
   - choose:
       - conditions:
           condition: template
-          value_template: "{{ trigger.from_state.entity_id == light_entity and is_state(trigger.to_state.entity_id, 'on') }}"
+          value_template: "{{ trigger.entity_id == light_entity and is_state(trigger.entity_id, 'on') }}"
         sequence:
           - action: switch.turn_on
             data:
               entity_id: "{{ switch_entity }}"
       - conditions:
           condition: template
-          value_template: "{{ trigger.from_state.entity_id == light_entity and is_state(trigger.to_state.entity_id, 'off') }}"
+          value_template: "{{ trigger.entity_id == light_entity and is_state(trigger.entity_id, 'off') }}"
         sequence:
           - action: switch.turn_off
             data:
               entity_id: "{{ switch_entity }}"
       - conditions:
           condition: template
-          value_template: "{{ trigger.from_state.entity_id == switch_entity and is_state(trigger.to_state.entity_id, 'on') }}"
+          value_template: "{{ trigger.entity_id == switch_entity and is_state(trigger.entity_id, 'on') }}"
         sequence:
           - action: light.turn_on
             data:
               entity_id: "{{ light_entity }}"
       - conditions:
           condition: template
-          value_template: "{{ trigger.from_state.entity_id == switch_entity and is_state(trigger.to_state.entity_id, 'off') }}"
+          value_template: "{{ trigger.entity_id == switch_entity and is_state(trigger.entity_id, 'off') }}"
         sequence:
           - action: light.turn_off
             data:
