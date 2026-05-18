@@ -23,12 +23,18 @@ blueprint:
                 - media_player.MediaPlayerEntityFeature.VOLUME_SET
             - domain: media_player
               supported_features:
+                - media_player.MediaPlayerEntityFeature.PAUSE
+            - domain: media_player
+              supported_features:
                 - media_player.MediaPlayerEntityFeature.VOLUME_MUTE
           multiple: true
     duck_volume_level:
       name: Ducked volume level
-      description: Volume level (0.0–1.0) the selected media players are set to while the satellite is engaged.
-      default: 0.1
+      description: >-
+        Volume level (0.0–1.0) for media players that support volume_set.
+        Players that only support pause or mute will be paused (preferred) or
+        muted as a fallback — this number is ignored for them.
+      default: 0.05
       selector:
         number:
           min: 0
@@ -63,12 +69,25 @@ variables:
       {%- endif -%}
     {%- endfor -%}
     {{ ns.pairs }}
+  players_to_pause: >-
+    {%- set ns = namespace(items=[]) -%}
+    {%- for e in media_player_entities -%}
+      {%- set sf = state_attr(e, 'supported_features') | int(0) -%}
+      {%- if states(e) == 'playing'
+             and sf | bitwise_and(4) == 0
+             and sf | bitwise_and(1) > 0
+             and sf | bitwise_and(16384) > 0 -%}
+        {%- set ns.items = ns.items + [e] -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {{ ns.items }}
   players_to_mute: >-
     {%- set ns = namespace(items=[]) -%}
     {%- for e in media_player_entities -%}
       {%- set sf = state_attr(e, 'supported_features') | int(0) -%}
-      {%- if states(e) not in ['unavailable', 'unknown']
+      {%- if states(e) == 'playing'
              and sf | bitwise_and(4) == 0
+             and (sf | bitwise_and(1) == 0 or sf | bitwise_and(16384) == 0)
              and sf | bitwise_and(8) > 0
              and state_attr(e, 'is_volume_muted') is not true -%}
         {%- set ns.items = ns.items + [e] -%}
@@ -96,6 +115,13 @@ action:
           volume_level: "{{ duck_volume_level }}"
   - if:
       - condition: template
+        value_template: "{{ players_to_pause | length > 0 }}"
+    then:
+      - action: media_player.media_pause
+        target:
+          entity_id: "{{ players_to_pause }}"
+  - if:
+      - condition: template
         value_template: "{{ players_to_mute | length > 0 }}"
     then:
       - action: media_player.volume_mute
@@ -118,6 +144,13 @@ action:
             entity_id: "{{ repeat.item.entity_id }}"
           data:
             volume_level: "{{ repeat.item.volume_level }}"
+  - if:
+      - condition: template
+        value_template: "{{ players_to_pause | length > 0 }}"
+    then:
+      - action: media_player.media_play
+        target:
+          entity_id: "{{ players_to_pause }}"
   - if:
       - condition: template
         value_template: "{{ players_to_mute | length > 0 }}"
