@@ -1,6 +1,8 @@
 blueprint:
   name: Turn On Area
-  description: Turn on all visible fans, lights, and switches in a given area.
+  description: >-
+    Turn on the fans, lights, and switches in a given area. Each device class
+    can be excluded via the include toggles.
   author: Cory Charlton
   source_url: https://github.com/CCSWE-Home-Assistant/blueprints/script/turn_on_area.yaml
   domain: script

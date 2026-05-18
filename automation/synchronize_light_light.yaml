@@ -1,6 +1,6 @@
 blueprint:
   name: Synchronize Light and Light
-  description: Synchronize light with light.
+  description: Mirror on/off state and brightness between two lights in both directions.
   author: Cory Charlton
   source_url: https://github.com/CCSWE-Home-Assistant/blueprints/automation/synchronize_light_light.yaml
   domain: automation
